@@ -19,8 +19,9 @@ defmodule Hydra.Router do
     get "/", PageController, :index
   end
 
-  # Other scopes may use custom stacks.
-  # scope "/api", Hydra do
-  #   pipe_through :api
-  # end
+  scope "/api", Hydra do
+    pipe_through :api
+
+    resources "messages", MessageController, only: [:index, :show, :create]
+  end
 end
