@@ -1,7 +1,7 @@
 defmodule Hydra.Message do
   use Hydra.Web, :model
 
-  @primary_key {:id, Ecto.UUID, autogenerate: true}
+  @primary_key {:id, :binary_id, autogenerate: false}
 
   schema "messages" do
     field :body, :string
@@ -9,17 +9,19 @@ defmodule Hydra.Message do
     timestamps
   end
 
-  @required_fields ~w(body)
-  @optional_fields ~w()
-
-  @doc """
-  Creates a changeset based on the `model` and `params`.
-
-  If no params are provided, an invalid changeset is returned
-  with no validation performed.
-  """
-  def changeset(model, params \\ :empty) do
+  def insert_changeset(model, params \\ :empty) do
     model
-    |> cast(params, @required_fields, @optional_fields)
+    |> cast(params, ~w(body), [])
+    |> validate_length(:body, min: 1, max: 5_000)
+    |> put_uuid()
+  end
+
+  defp put_uuid(changeset) do
+    case changeset do
+      %Ecto.Changeset{valid?: true} ->
+        put_change(changeset, :id, Ecto.UUID.generate)
+      _ ->
+        changeset
+    end
   end
 end

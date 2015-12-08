@@ -9,14 +9,14 @@ defmodule Hydra.MessageController do
   end
 
   def create(conn, %{"data" => %{"attributes" => message_params}}) do
-    changeset = Message.changeset(%Message{}, message_params)
+    changeset = Message.insert_changeset(%Message{}, message_params)
 
-    case Repo.insert(changeset) do
-      {:ok, message} ->
+    case Repo.log(changeset) do
+      {:ok, changeset} ->
         conn
         |> put_status(:accepted)
-        |> put_resp_header("location", message_path(conn, :show, message))
-        |> render("show.json", message: message)
+        |> put_resp_header("location", message_path(conn, :show, changeset.changes.id))
+        |> render("show.json", message: changeset.changes)
       {:error, changeset} ->
         conn
         |> put_status(:unprocessable_entity)
